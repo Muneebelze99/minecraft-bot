@@ -1,0 +1,4 @@
+streamlit
+discord.py
+python-aternos
+google-genai
