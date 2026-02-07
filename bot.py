@@ -26,18 +26,47 @@ try:
 except Exception as e:
     st.error("❌ Secrets missing! Go to Streamlit Settings > Secrets.")
     st.stop()
-
 # --- 4. THE GHOST ENGINE ---
 bot = commands.Bot(command_prefix="!", intents=intents)
 
-# Initialize Clients
+# Global variable to store server info safely
+if 'at_server' not in st.session_state:
+    st.session_state.at_server = None
+
+# Initialize Clients with a safety check
 try:
-    # Fixed login method for python-aternos
     at_client = Client(user=AT_USER, password=AT_PASS)
-    at_server = at_client.list_servers()[0]
-    ai_client = genai.Client(api_key=GEM_KEY)
+    # This gets your first server
+    at_servs = at_client.list_servers()
+    if at_servs:
+        st.session_state.at_server = at_servs[0]
+        at_server = st.session_state.at_server # Local reference for the bot
+        ai_client = genai.Client(api_key=GEM_KEY)
+    else:
+        st.error("❌ No Minecraft servers found on this Aternos account!")
 except Exception as e:
     st.error(f"❌ Connection Error: {e}")
+
+# ... [Keep your bot commands (!ping, !ask, !find_tp) here] ...
+
+# --- 5. STREAMLIT CONTROL ---
+if st.button("🚀 Wake Up Ghost Agent"):
+    if "running" not in st.session_state:
+        st.session_state.running = True
+        threading.Thread(target=lambda: bot.run(DC_TOKEN), daemon=True).start()
+        st.success("Ghost Agent is waking up! Check Discord.")
+    else:
+        st.warning("Agent is already online.")
+
+st.divider()
+
+# FIXED: Check if at_server exists before trying to print its address
+if st.session_state.at_server:
+    # Most Aternos versions use .address, but we add a fallback just in case
+    addr = getattr(st.session_state.at_server, 'address', 'Unknown Address')
+    st.info(f"🎮 Connected to: **{addr}**")
+else:
+    st.info("🔌 Waiting for server connection...")
 
 async def ghost_cleaner():
     """Spams the console with blank lines to hide recent commands"""
