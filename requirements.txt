@@ -1,4 +1,5 @@
 streamlit
 discord.py
 python-aternos
+six
 google-genai
