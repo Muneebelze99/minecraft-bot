@@ -67,3 +67,16 @@ if st.button("🚀 Activate Ghost Agent"):
         threading.Thread(target=run_discord_bot, daemon=True).start()
         st.session_state.running = True
     st.success("Bot is live! Control it via Discord DMs.")
+
+# Create intents object
+intents = discord.Intents.default()
+intents.message_content = True  # <--- THIS IS THE MISSING KEY
+intents.guilds = True
+intents.messages = True
+
+# Pass intents into the bot
+bot = commands.Bot(command_prefix="!", intents=intents)
+
+@bot.command()
+async def ping(ctx):
+    await ctx.send(f"🏓 Pong! I can hear you, {ctx.author.name}!")
